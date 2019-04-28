@@ -13,7 +13,7 @@ from tkinter import *
 from tkinter import ttk
 from time import sleep
 
-
+#直播成員資料類別
 class MemberData(object):
 
     def __init__(self, live_id, live_key, live_url, nickname, pfid, hot_val):
@@ -85,6 +85,7 @@ class MemberData(object):
     def getIsRecording(self):
         return self.__isRecording
 
+#直播錄製執行緒類別(未使用)
 class LiveRecording(threading.Thread):
 
     def __init__(self, mId):
@@ -127,6 +128,7 @@ class ScanLiveMember():
         self.__liveMemberSum = None
         self.__subMemberArray = None
 
+    #讀取直播中成員資料
     def getLiveMember(self):
         global LiveMemberData
         LiveMemberData = {}
@@ -137,6 +139,7 @@ class ScanLiveMember():
         #jsonStr = json.dumps(jsonObj, sort_keys=False, indent=6, ensure_ascii=False)
         self.__liveMemberSum = len(jsonObj['data']['list'])
         self.__liveMemberJson = jsonObj['data']['list']
+        #將直播資料存入類別陣列
         if self.getLiveMemberSum() > 0:
             for i in range(0, self.getLiveMemberSum()):
                 if str(self.getLiveMemberData()[i]['pfid']) not in LiveMemberData:
@@ -166,6 +169,7 @@ class LangLiveWindow(Frame):
         self.j = 0
         self.thr = {}
 
+    #視窗物件建立
     def WindowInit(self):
         self.win.title('LangLiveRecord')
         #self.win.geometry('600x300')
@@ -222,6 +226,7 @@ class LangLiveWindow(Frame):
 
         self.member_table_count = 0
 
+    #初始化成員列表
     def init_data(self):
         for i in range(0, len(memberIdArray) - 1):
             self.member_table.insert('', 'end', text=self.member_table_count, value=('', memberIdArray[i][0], '', '', ''))
@@ -250,20 +255,26 @@ class LangLiveWindow(Frame):
             self.member_table.insert('', index, text=self.member_table_count, value=(0, memberIdJson[mId], '', '', ''))
         self.member_table_count += 1'''
 
+    #更新成員列表直播與訂閱資訊
     def update_data(self):
+        #讀取檔案獲得已訂閱成員
         subMemberFile = open('subscribe_member.txt', 'r')
         self.__subMemberArray = subMemberFile.read().split(';')
+        #讀取API獲得直播中成員資料
         ScanLiveMember().getLiveMember()
         self.member_table_count = 0
 
+        #更新成員列表資料
         for member in self.member_table.get_children():
             mId = memberIdJson[self.member_table.item(member, 'value')[1]]
 
+            #更新訂閱與否
             if mId in self.__subMemberArray:
                 self.member_table.set(member, 0, value=('已訂閱'))
             else:
                 self.member_table.set(member, 0, value=(''))
 
+            #更新是否直播中
             if mId in LiveMemberData:
                 self.member_table.set(member, 2, value=('直播中'))
                 self.member_table.set(member, 3, value=(LiveMemberData[mId].getHotVal()))
@@ -271,11 +282,13 @@ class LangLiveWindow(Frame):
                 self.member_table.set(member, 2, value=(''))
                 self.member_table.set(member, 3, value=(''))
 
+            #若直播中且已訂閱但未開始錄影則建立錄影執行緒
             if mId in LiveMemberData and mId in self.__subMemberArray and mId not in self.thr:
                 self.member_table.set(member, 4, value=('錄製中'))
                 self.thr[mId] = threading.Thread(target=test, args=[mId])
                 self.thr[mId].start()
 
+            #若未直播中但有錄影執行緒則刪除該執行緒
             if mId not in LiveMemberData and mId in self.thr:
                 if not self.thr[mId].isAlive():
                     del self.thr[mId]
@@ -289,6 +302,7 @@ class LangLiveWindow(Frame):
         config.read('setting.ini')
         threading.Timer(int(config['SET']['loop_second']), self.update_data).start()
 
+#讀取成員資料並將姓名與浪Live編號相互指引
 memberIdFile = open('member_id.txt','r')
 memberIdArray = memberIdFile.read().split(';')
 for i in range(0, len(memberIdArray) - 1):
@@ -304,9 +318,10 @@ for i in range(0, len(memberIdArray) - 1):
         memberIdStr += "}"
 memberIdJson = json.loads(memberIdStr)
 
+#初始化直播中成員陣列
 LiveMemberData = {}
 
-
+#ffmpeg錄製影片
 def test(id):
     #threading.Thread(sleep(3))
     '''while True:
@@ -317,25 +332,32 @@ def test(id):
         if requests.get(url) is 200:
             break'''
 
+    #直播連結會有兩種,所以需要分別判斷連結是否可以讀取
     if requests.get(LiveMemberData[id].getLiveUrl()).status_code == 200:
         url = LiveMemberData[id].getLiveUrl()
     else:
         url = LiveMemberData[id].getLiveUrlAno()
 
+    #獲得目前時間並作為檔案名稱
     sTime = str(time.time())
+    #下錄影指令
     command = subprocess.Popen("ffmpeg -i \"" + url + "\" -c copy -report " + memberIdJson[id] + "_" +
                                 time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + sTime[sTime.find('.'):]  + ".ts",
                                 shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
 
     recvFlag = 1
     out = ''
     while True:
         try:
             if recvFlag is not 0:
+                #最初先逐行讀取
                 out = command.stderr.readline().decode('big5')
+                #讀取到Press字串後開始錄影
                 recvFlag = out.find('Press')
             else:
                 index = 79
+                #之後則逐字讀取
                 out += command.stderr.read(1).decode('big5')
                 '''if out.find('Lsize') is not -1:
                     out += command.stderr.read(2).decode('big5')
@@ -357,16 +379,20 @@ def test(id):
                 print(out, end='')
             else:
                 if out.find('speed') is not -1:
+                    #保留讀取錄製訊息,未來可新增至視窗上
                     print(out.rstrip())
                     out = ''
                 elif out.find('Opening') is not -1:
+                    #每當ffmpeg錄影一小短畫面便會傳回Opening字串
+                    #因直播結束ffmpeg不會自行關閉,所以則每次檢查直播連結是否還在
+                    #否則傳送指令結束ffmpeg並結束此執行緒
                     if requests.get(url).status_code != 200:
                         command.communicate(input=b'q\n')
                         break
                     else:
                         out = ''
 
-
+#--------------------測試程式碼-----------------------------------------------------
 def cmdTest(num):
     recvFlag = 1
     sTime = str(time.time())
@@ -414,14 +440,10 @@ threading.Thread(sleep(1))
 i = 1
 t2 = threading.Thread(target=cmdTest, args=[i])
 #t2.start()
+#-------------------------------------------------------------------------
 
-
-window = Tk()
+window = Tk()#建立視窗
 w = LangLiveWindow(window)
-w.init_data()
-w.update_data()
+w.init_data()#初始化列表
+w.update_data()#撈API更新列表資料
 window.mainloop()
-
-#print(jsonStr)
-#for i in range(0, liveMemberSum):
-#    print(liveMemberJson[i]['nickname'])

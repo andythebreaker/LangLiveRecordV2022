@@ -5,6 +5,8 @@ import time
 import threading
 import configparser
 import json
+import os
+import signal
 import subprocess
 
 from tkinter import *
@@ -18,7 +20,7 @@ class MemberData(object):
         self.__live_id = live_id
         self.__live_key = live_key
         self.__live_url = "https://video-wshls.langlive.com/live/" + self.__live_id + "/playlist.m3u8"
-        self.__live_url_ano = "https://video-hls.langlive.com/live/" + self.__live_id + "/online.m3u8"
+        self.__live_url_ano = "http://video-hls.langlive.com/live/" + self.__live_id + "/online.m3u8"
         self.__nickname = nickname
         self.__pfid = pfid
         self.__hot_val = hot_val
@@ -185,9 +187,9 @@ class LangLiveWindow(Frame):
         self.member_table.configure(yscrollcommand=self.member_vbar.set)
         self.member_table.heading('#0', text='編號')  # 是否預約
         self.member_table.heading('#1', text='預約')  # 是否預約
-        self.member_table.heading('#2', text='姓名')  # 姓名
+        self.member_table.heading('#2', text='成員')  # 姓名
         self.member_table.heading('#3', text='直播')  # 直播情況
-        self.member_table.heading('#4', text='觀看人數')  # 直播熱度
+        self.member_table.heading('#4', text='直播熱度')  # 直播熱度
         self.member_table.heading('#5', text='錄製')  # 錄製中&錄製訊息
         self.member_table.column('#0', width=50, anchor='center', stretch=0)  # 是否預約
         self.member_table.column('#1', width=100, anchor='center', stretch=0)#是否預約
@@ -256,6 +258,7 @@ class LangLiveWindow(Frame):
 
         for member in self.member_table.get_children():
             mId = memberIdJson[self.member_table.item(member, 'value')[1]]
+
             if mId in self.__subMemberArray:
                 self.member_table.set(member, 0, value=('已訂閱'))
             else:
@@ -268,15 +271,15 @@ class LangLiveWindow(Frame):
                 self.member_table.set(member, 2, value=(''))
                 self.member_table.set(member, 3, value=(''))
 
-            if mId in LiveMemberData and mId in self.__subMemberArray:
-                if mId in self.thr:
-                    if not self.thr[mId].isAlive():
-                        del self.thr[mId]
-                        self.member_table.set(member, 4, value=(''))
-                else:
-                    self.member_table.set(member, 4, value=('錄製中'))
-                    self.thr[mId] = threading.Thread(target=test, args=[mId])
-                    self.thr[mId].start()
+            if mId in LiveMemberData and mId in self.__subMemberArray and mId not in self.thr:
+                self.member_table.set(member, 4, value=('錄製中'))
+                self.thr[mId] = threading.Thread(target=test, args=[mId])
+                self.thr[mId].start()
+
+            if mId not in LiveMemberData and mId in self.thr:
+                if not self.thr[mId].isAlive():
+                    del self.thr[mId]
+                    self.member_table.set(member, 4, value=(''))
 
 
         '''for i in range(0, len(self.member_table.get_children())):
@@ -305,16 +308,27 @@ LiveMemberData = {}
 
 
 def test(id):
+    #threading.Thread(sleep(3))
+    '''while True:
+        url = LiveMemberData[id].getLiveUrl()
+        if requests.get(url) is 200:
+            break
+        url = LiveMemberData[id].getLiveUrlAno()
+        if requests.get(url) is 200:
+            break'''
+
     if requests.get(LiveMemberData[id].getLiveUrl()).status_code == 200:
         url = LiveMemberData[id].getLiveUrl()
     else:
         url = LiveMemberData[id].getLiveUrlAno()
 
-    command = subprocess.Popen("ffmpeg -i \"" + url + "\" -c copy " + memberIdJson[id] + "_" +
-                                time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + ".ts",
+    sTime = str(time.time())
+    command = subprocess.Popen("ffmpeg -i \"" + url + "\" -c copy -report " + memberIdJson[id] + "_" +
+                                time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + sTime[sTime.find('.'):]  + ".ts",
                                 shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
     recvFlag = 1
+    out = ''
     while True:
         try:
             if recvFlag is not 0:
@@ -322,8 +336,8 @@ def test(id):
                 recvFlag = out.find('Press')
             else:
                 index = 79
-                out = command.stderr.read(86).decode('big5')
-                if out.find('Lsize') is not -1:
+                out += command.stderr.read(1).decode('big5')
+                '''if out.find('Lsize') is not -1:
                     out += command.stderr.read(2).decode('big5')
                     index += 1
                 if out.find('/s') is not index:
@@ -335,19 +349,30 @@ def test(id):
                     else:
                         while out.find('file.') is -1:
                             out += command.stderr.read(1).decode('big5')
-                        out += command.stderr.read(2).decode('big5')
+                        out += command.stderr.read(2).decode('big5')'''
         except:
             print("Unexpected error:", sys.exc_info())
         if out is not '':
             if recvFlag is not 0:
                 print(out, end='')
             else:
-                print(out.rstrip())
+                if out.find('speed') is not -1:
+                    print(out.rstrip())
+                    out = ''
+                elif out.find('Opening') is not -1:
+                    if requests.get(url).status_code != 200:
+                        command.communicate(input=b'q\n')
+                        break
+                    else:
+                        out = ''
 
-def cmdTest():
+
+def cmdTest(num):
     recvFlag = 1
-    stri = "ffmpeg -i \"https://playback-ws.langlive.com/live-3650718Y997710SMP--20190425214255.m3u8\" -c copy -t 00:03:30 林潔心_" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + ".ts"
+    sTime = str(time.time())
+    stri = "ffmpeg -i \"https://playback-ws.langlive.com/live-3650718Y997710SMP--20190425214255.m3u8\" -c copy -t 00:03:30 -report 林潔心_" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + sTime[sTime.find('.'):] + ".ts"
     dir = subprocess.Popen(stri, shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    out = ''
     while True:
         try:
             if recvFlag is not 0:
@@ -355,8 +380,8 @@ def cmdTest():
                 recvFlag = out.find('Press')
             else:
                 index = 79
-                out = dir.stderr.read(86).decode('big5')
-                if out.find('Lsize') is not -1:
+                out += dir.stderr.read(1).decode('big5')
+                '''if out.find('Lsize') is not -1:
                     out += dir.stderr.read(2).decode('big5')
                     index += 1
                 if out.find('/s') is not index:
@@ -368,17 +393,27 @@ def cmdTest():
                     else:
                         while out.find('file.') is -1:
                             out += dir.stderr.read(1).decode('big5')
-                        out += dir.stderr.read(2).decode('big5')
+                        out += dir.stderr.read(2).decode('big5')'''
         except:
             print("Unexpected error:", sys.exc_info())
         if out is not '':
             if recvFlag is not 0:
                 print(out, end='')
             else:
-                print(out.rstrip())
+                if out.find('speed') is not -1:
+                    if num is 0:
+                        dir.communicate(input=b'q\n')
+                        break
+                    print(out.rstrip())
+                    out = ''
 
-t = threading.Thread(target=cmdTest)
+i = 0
+t = threading.Thread(target=cmdTest, args=[i])
 #t.start()
+threading.Thread(sleep(1))
+i = 1
+t2 = threading.Thread(target=cmdTest, args=[i])
+#t2.start()
 
 
 window = Tk()

@@ -1,0 +1,5 @@
+('c:\\python27\\lib\\site-packages\\requests-2.17.3-py2.7.egg',
+ None,
+ set(['*.py', '*.pyc', '*.pyd', '*.pyo', '*.so', 'EGG-INFO']),
+ 'DATA',
+ [])

@@ -1,0 +1,51 @@
+ffmpeg started on 2022-08-02 at 01:19:55
+Report written to "ffmpeg-20220802-011955.log"
+Command line:
+ffmpeg -i http://video-hls.langlive.com/live/P3650735HNg3Pir/online.m3u8 -c copy -report "\xa9P\xa8\xce\xad\xa7_2022-08-02_01-19-55.4375381.ts"
+ffmpeg version N-93675-gf857753f56 Copyright (c) 2000-2019 the FFmpeg developers
+  built with gcc 8.3.1 (GCC) 20190414
+  configuration: --enable-gpl --enable-version3 --enable-sdl2 --enable-fontconfig --enable-gnutls --enable-iconv --enable-libass --enable-libdav1d --enable-libbluray --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-libopus --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libtheora --enable-libtwolame --enable-libvpx --enable-libwavpack --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-libzimg --enable-lzma --enable-zlib --enable-gmp --enable-libvidstab --enable-libvorbis --enable-libvo-amrwbenc --enable-libmysofa --enable-libspeex --enable-libxvid --enable-libaom --enable-libmfx --enable-amf --enable-ffnvcodec --enable-cuvid --enable-d3d11va --enable-nvenc --enable-nvdec --enable-dxva2 --enable-avisynth --enable-libopenmpt
+  libavutil      56. 26.100 / 56. 26.100
+  libavcodec     58. 52.100 / 58. 52.100
+  libavformat    58. 27.103 / 58. 27.103
+  libavdevice    58.  7.100 / 58.  7.100
+  libavfilter     7. 49.100 /  7. 49.100
+  libswscale      5.  4.100 /  5.  4.100
+  libswresample   3.  4.100 /  3.  4.100
+  libpostproc    55.  4.100 / 55.  4.100
+Splitting the commandline.
+Reading option '-i' ... matched as input url with argument 'http://video-hls.langlive.com/live/P3650735HNg3Pir/online.m3u8'.
+Reading option '-c' ... matched as option 'c' (codec name) with argument 'copy'.
+Reading option '-report' ... matched as option 'report' (generate a report) with argument '1'.
+Reading option '周佳郁_2022-08-02_01-19-55.4375381.ts' ... matched as output url.
+Finished splitting the commandline.
+Parsing a group of options: global .
+Applying option report (generate a report) with argument 1.
+Successfully parsed a group of options.
+Parsing a group of options: input url http://video-hls.langlive.com/live/P3650735HNg3Pir/online.m3u8.
+Successfully parsed a group of options.
+Opening an input file: http://video-hls.langlive.com/live/P3650735HNg3Pir/online.m3u8.
+[NULL @ 0000023f09f5a800] Opening 'http://video-hls.langlive.com/live/P3650735HNg3Pir/online.m3u8' for reading
+[http @ 0000023f09f5b9c0] Setting default whitelist 'http,https,tls,rtp,tcp,udp,crypt[tcp @ 0[tcp @[tc[tcp @ 0000017a7fa0d400] Original list of addresses:
+[tcp @ 0000017a7fa0d400] Address 223.95.36.149 port 80
+[tcp @ 0000017a7fa0d400] Address 101.66.188.85 port 80
+[tcp @ 0000017a7fa0d400] Address 60.163.163.150 port 80
+[tcp @ 0000017a7fa0d400] Address 223.95.36.148 port 80
+[tcp @ 0000017a7fa0d400] Address 60.163.163.149 port 80
+[tcp @ 0000017a7fa0d400] Address 101.66.188.86 port 80
+[tcp @ 0000017a7fa0d400] Interleaved list of addresses:
+[tcp @ 0000017a7fa0d400] Address 223.95.36.149 port 80
+[tcp @ 0000017a7fa0d400] Address 101.66.188.85 port 80
+[tcp @ 0000017a7fa0d400] Address 60.163.163.150 port 80
+[tcp @ 0000017a7fa0d400] Address 223.95.36.148 port 80
+[tcp @ 0000017a7fa0d400] Address 60.163.163.149 port 80
+[tcp @ 0000017a7fa0d400] Address 101.66.188.86 port 80
+[tcp @ 0000017a7fa0d400] Starting connection attempt to 223.95[tcp @ 0000016298[tcp @ 000002a37370d400] Successfully connected to 223.95.36.149 port 80
+[http @ 000002a37370b9c0] request: GET /live/P3652550H5GBfkE/online.m3u8 HTTP/1.1
+User-Agent: Lavf/58.27.103
+Accept: */*
+Range: bytes=0-
+Connection: close
+Host: video-hls.langlive.com
+Icy-Me[http @ 000001[ht[http @ 000002a37370b9c0] HTTP error 403 Forbidden
+http://video-hls.langlive.com/live/P3652550H5GBfkE/online.m3u8: Server returned 403 Forbidden (access denied)

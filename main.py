@@ -8,10 +8,13 @@ import json
 import os
 import signal
 import subprocess
-
+var_group_main_url = 'https://api.lang.live/langweb/v1/home/class_list?psize=40&id=3-100002'
 from tkinter import *
 from tkinter import ttk
 from time import sleep
+import sys
+sys.path.extend(['./my_lib'])
+import room_info
 
 #直播成員資料類別
 class MemberData(object):
@@ -28,7 +31,7 @@ class MemberData(object):
         #self.__isRequ = False
         self.__isRecording = False
 
-    def setLiveId(self, live_id):
+    def setroom_info(self, live_id):
         self.__live_id = live_id
 
     def setLiveKey(self, live_key):
@@ -55,7 +58,7 @@ class MemberData(object):
     def setIsRecording(self, isRecording):
         self.__isRecording = isRecording
 
-    def getLiveId(self):
+    def getroom_info(self):
         return self.__live_id
 
     def getLiveKey(self):
@@ -132,9 +135,10 @@ class ScanLiveMember():
     def getLiveMember(self):
         global LiveMemberData
         LiveMemberData = {}
-        url = 'https://api.lang.live/langweb/v1/home/class_list?psize=40&id=3-100002'
+        url = var_group_main_url
         Mres = requests.post(url)
         #Msoup = BeautifulSoup(Mres.text, "html.parser")
+        print(Mres.text)
         jsonObj = json.loads(Mres.text)
         #jsonStr = json.dumps(jsonObj, sort_keys=False, indent=6, ensure_ascii=False)
         self.__liveMemberSum = len(jsonObj['data']['list'])
@@ -143,12 +147,14 @@ class ScanLiveMember():
         if self.getLiveMemberSum() > 0:
             for i in range(0, self.getLiveMemberSum()):
                 if str(self.getLiveMemberData()[i]['pfid']) not in LiveMemberData:
-                    memberData = MemberData(str(self.getLiveMemberData()[i]['live_id']),
-                                            str(self.getLiveMemberData()[i]['live_key']),
-                                            str(self.getLiveMemberData()[i]['live_url']),
-                                            str(self.getLiveMemberData()[i]['nickname']),
+                    get_room_info=requests.get('https://api.lang.live/langweb/v1/room/liveinfo?room_id='+str(self.getLiveMemberData()[i]['pfid']))
+                    room_info_text=get_room_info.text
+                    memberData = MemberData(room_info.exe(room_info_text,room_info.Color.live_id),
+                                            room_info.exe(room_info_text,room_info.Color.live_key),
+                                            room_info.exe(room_info_text,room_info.Color.live_url),
+                                            str(self.getLiveMemberData()[i]['nic']),
                                             str(self.getLiveMemberData()[i]['pfid']),
-                                            str(self.getLiveMemberData()[i]['hot_val']))
+                                            room_info.exe(room_info_text,room_info.Color.hot_val))
                     LiveMemberData[str(self.getLiveMemberData()[i]['pfid'])] = memberData
         else:
             print("No One is Liveing")
@@ -258,11 +264,16 @@ class LangLiveWindow(Frame):
     #更新成員列表直播與訂閱資訊
     def update_data(self):
         #讀取檔案獲得已訂閱成員
+        print("CP1")
         subMemberFile = open('subscribe_member.txt', 'r')
+        print("CP2")
         self.__subMemberArray = subMemberFile.read().split(';')
+        print("CP3")
         #讀取API獲得直播中成員資料
         ScanLiveMember().getLiveMember()
+        print("CP4")
         self.member_table_count = 0
+        print("CP5")
 
         #更新成員列表資料
         for member in self.member_table.get_children():
@@ -443,7 +454,12 @@ t2 = threading.Thread(target=cmdTest, args=[i])
 #-------------------------------------------------------------------------
 
 window = Tk()#建立視窗
+print("checkpoint1")
 w = LangLiveWindow(window)
+print("checkpoint2")
 w.init_data()#初始化列表
+print("checkpoint3")
 w.update_data()#撈API更新列表資料
+print("checkpoint4")
 window.mainloop()
+print("checkpoint5")

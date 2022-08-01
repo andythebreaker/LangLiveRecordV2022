@@ -132,8 +132,8 @@ class ScanLiveMember():
     def getLiveMember(self):
         global LiveMemberData
         LiveMemberData = {}
-        url = 'https://tw.api.langlive.com/v2/activity/Flyer/AKB48TP'
-        Mres = requests.get(url)
+        url = 'https://api.lang.live/langweb/v1/home/class_list?psize=40&id=3-100002'
+        Mres = requests.post(url)
         #Msoup = BeautifulSoup(Mres.text, "html.parser")
         jsonObj = json.loads(Mres.text)
         #jsonStr = json.dumps(jsonObj, sort_keys=False, indent=6, ensure_ascii=False)

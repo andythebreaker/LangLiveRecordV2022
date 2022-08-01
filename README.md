@@ -10,3 +10,8 @@
 ##### not-ok os
 
 - linux
+
+##### TODO
+
+- [ ] bton gui faild
+- [ ] vscode todo

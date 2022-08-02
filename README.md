@@ -9,6 +9,10 @@
 - py3.+
 - w/ GUI
 
+##### must
+
+os must support `zh-tw`
+
 ##### not-ok os
 
 - linux
@@ -18,3 +22,4 @@
 - [ ] bton gui faild
 - [ ] vscode todo
 - [ ] 主程式316改掉
+- [ ] zh-tw not sup.

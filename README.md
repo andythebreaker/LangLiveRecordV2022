@@ -17,3 +17,4 @@
 
 - [ ] bton gui faild
 - [ ] vscode todo
+- [ ] 主程式316改掉

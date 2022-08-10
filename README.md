@@ -1,5 +1,10 @@
 # LangLiveRecord
-下載浪Live用的程式(限TTP)
+
+Overcalling the API will make the API unusable
+main logic problem
+waiting for repair
+
+~~下載浪Live用的程式(限TTP)~~
 
 ## 施工中
 
